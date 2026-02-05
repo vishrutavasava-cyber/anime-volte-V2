@@ -2,6 +2,7 @@
   "name": "Anime Vault PRO",
   "short_name": "AnimeVault",
   "start_url": "./",
+  "scope": "./",
   "display": "standalone",
   "background_color": "#020617",
   "theme_color": "#0b1220",
