@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Anime Vault PRO</title>
+
+  <!-- PWA -->
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#0b1220">
+
+  <style>
+    :root{
+      --bg:#0b1220;--card:#111a2e;--accent:#6366f1;--text:#e5e7eb;
+    }
+    *{box-sizing:border-box;font-family:system-ui,-apple-system,Segoe UI}
+    body{margin:0;background:linear-gradient(160deg,#020617,#0b1220);color:var(--text)}
+    h1{text-align:center;margin:20px 0}
+    .wrap{max-width:1100px;margin:auto;padding:16px}
+    .card{background:var(--card);border-radius:14px;padding:16px;margin-bottom:16px}
+    input,select,button{width:100%;padding:10px;border-radius:10px;border:none;margin:6px 0}
+    button{background:var(--accent);color:white;font-weight:600;cursor:pointer}
+    .row{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
+    .genres{display:flex;flex-wrap:wrap;gap:8px}
+    .chip{padding:6px 12px;border-radius:999px;background:#1f2937;border:1px solid #374151;cursor:pointer}
+    .chip.active{background:var(--accent)}
+    .anime{display:flex;justify-content:space-between;align-items:center;padding:10px;border-bottom:1px solid #1f2937}
+    .badge{padding:3px 8px;border-radius:999px;font-size:12px}
+    .fav{color:gold}
+  </style>
+</head>
+<body>
+<h1>🗝️ Anime Vault PRO</h1>
+<div class="wrap">
+
+<!-- LOGIN -->
+<div class="card" id="login">
+  <button onclick="guest()">Guest (View Only)</button>
+  <input id="pin" placeholder="Owner PIN" type="password">
+  <button onclick="login()">Owner Login</button>
+</div>
+
+<!-- APP -->
+<div class="card" id="app" style="display:none">
+
+<div class="row">
+  <input id="title" placeholder="Anime name">
+  <input id="rating" placeholder="Rating (9.6)">
+  <select id="status">
+    <option>Watching</option><option>Completed</option><option>Planned</option>
+  </select>
+</div>
+
+<b>Genres</b>
+<div class="genres" id="genreBox"></div>
+<button onclick="addAnime()">Add / Update</button>
+
+<hr>
+<input id="search" placeholder="Search" oninput="render()">
+<button onclick="sortFav()">⭐ Most Watched</button>
+<div id="list"></div>
+
+</div>
+</div>
+
+<script>
+const PIN='1234'
+let owner=false
+let animes=JSON.parse(localStorage.getItem('animeVault')||'[]')
+
+const GENRES=[
+ 'Comedy','Dementia','Demons','Mystery','Drama','Ecchi','Fantasy','Game','Hentai','Historical','Horror','Kids','Magic','Martial Arts','Mecha','Music','Parody','Samurai','Romance','School','Sci‑Fi','Shoujo','Shoujo Ai','Shounen','Shounen Ai','Space','Sports','Super Power','Vampire','Yaoi','Yuri','Harem','Slice of Life','Supernatural','Military','Police','Psychological','Thriller','Seinen','Josei','Isekai'
+]
+
+let selGenres=[]
+
+function buildGenres(){
+  const box=document.getElementById('genreBox')
+  GENRES.forEach(g=>{
+    const c=document.createElement('div')
+    c.className='chip'
+    c.innerText=g
+    c.onclick=()=>{c.classList.toggle('active');selGenres.includes(g)?selGenres=selGenres.filter(x=>x!=g):selGenres.push(g)}
+    box.appendChild(c)
+  })
+}
+buildGenres()
+
+function login(){if(pin.value===PIN){owner=true;start()}}
+function guest(){start()}
+function start(){login.style.display='none';app.style.display='block';render()}
+
+function addAnime(){
+ if(!owner)return alert('Guest mode')
+ const a={title:title.value,rating:rating.value,status:status.value,genres:[...selGenres],fav:false}
+ const i=animes.findIndex(x=>x.title===a.title)
+ i>-1?animes[i]=a:animes.push(a)
+ save()
+}
+
+function save(){localStorage.setItem('animeVault',JSON.stringify(animes));render()}
+
+function sortFav(){animes.sort((a,b)=>(b.fav?1:0)-(a.fav?1:0));render()}
+
+function render(){
+ list.innerHTML=''
+ const q=search.value.toLowerCase()
+ animes.filter(a=>a.title.toLowerCase().includes(q)).forEach((a,i)=>{
+  const d=document.createElement('div')
+  d.className='anime'
+  d.innerHTML=`<div><b>${a.title}</b> ⭐${a.rating}<br>${a.genres.map(g=>`<span class='badge'>${g}</span>`).join(' ')}</div>
+  <button onclick="fav(${i})" class="fav">★</button>`
+  list.appendChild(d)
+ })
+}
+
+function fav(i){animes[i].fav=!animes[i].fav;save()}
+</script>
+</body>
+</html>
